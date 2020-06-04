@@ -126,9 +126,9 @@ function read (idealTree, opts) {
             retrieveDependencies(transitiveDependencies)
         }
 
-        if (fundingItem.funding) {
+        if (isValidFunding(fundingItem.funding)) {
           res[directDep.to.name] = fundingItem
-        } else if (fundingItem.dependencies) {
+        } else if (hasDependencies(fundingItem.dependencies)) {
           res[_trailingDependencies] =
             Object.assign(
               empty(),

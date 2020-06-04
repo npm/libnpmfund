@@ -169,6 +169,49 @@ test('multiple funding sources', (t) => {
   t.end()
 })
 
+test('deep-nested missing funding-info obj', (t) => {
+  t.deepEqual(
+    read({
+      name: 'project',
+      package: {
+        funding: 'http://example.com'
+      },
+      edgesOut: new Map([
+        ['no-funding-info-item', {
+          to: {
+            name: 'no-funding-info-item',
+            package: {
+              name: 'no-funding-info-item',
+              version: '1.0.0'
+            },
+            edgesOut: new Map([
+              ['single-item', {
+                to: {
+                  name: 'single-item',
+                  package: {
+                    name: 'single-item',
+                    version: '1.0.0'
+                  }
+                }
+              }]
+            ])
+          }
+        }]
+      ])
+    }),
+    {
+      name: 'project',
+      funding: {
+        url: 'http://example.com'
+      },
+      dependencies: {},
+      length: 0
+    },
+    'should return list excluding packages missing funding info'
+  )
+  t.end()
+})
+
 test('top-level funding info', (t) => {
   t.deepEqual(
     read({
@@ -760,6 +803,23 @@ test('handle different versions', (t) => {
       length: 4
     },
     'should treat different versions as diff packages'
+  )
+  t.end()
+})
+
+test('should not count root', (t) => {
+  t.deepEqual(
+    read({
+      name: 'project',
+      package: {
+        funding: 'http://example.com'
+      },
+      edgesOut: new Map()
+    }, { countOnly: true }),
+    {
+      length: 0
+    },
+    'should return length value excluding root funding info'
   )
   t.end()
 })
