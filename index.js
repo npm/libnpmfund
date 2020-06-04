@@ -1,6 +1,7 @@
 'use strict'
 
 const URL = require('url').URL
+const Arborist = require('@npmcli/arborist')
 
 // supports object funding and string shorthand, or an array of these
 // if original was an array, returns an array; else returns the lone item
@@ -37,11 +38,17 @@ function isValidFunding (funding) {
 const empty = () => Object.create(null)
 
 // retrieves funding info for project at cwd or given opts.idealTree if avail
-function read (idealTree, opts) {
+async function read (opts) {
   let packageWithFundingCount = 0
   const seen = new Set()
-  const { countOnly } = opts || {}
+  const { countOnly, path, tree, ...arbOpts } = opts || {}
+  let idealTree = tree
   const _trailingDependencies = Symbol('trailingDependencies')
+
+  if (!tree) {
+    const arb = new Arborist({ ...arbOpts, path })
+    idealTree = await arb.loadActual()
+  }
 
   function tracked (name, version) {
     const key = String(name) + String(version)
@@ -148,8 +155,9 @@ function read (idealTree, opts) {
 
   if (!countOnly) {
     const name =
-      (idealTree.package && idealTree.package.name) || idealTree.name
-    result.name = name || idealTree.path
+      (idealTree && idealTree.package && idealTree.package.name) ||
+      (idealTree && idealTree.name)
+    result.name = name || (idealTree && idealTree.path)
 
     if (idealTree && idealTree.package && idealTree.package.version) {
       result.version = idealTree.package.version

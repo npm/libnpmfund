@@ -7,9 +7,76 @@ const {
   isValidFunding
 } = require('./index.js')
 
-test('empty tree', (t) => {
+test('loading tree from path', async (t) => {
+  const path = t.testdir({
+    node_modules: {
+      a: {
+        'package.json': JSON.stringify({
+          name: 'a',
+          version: '1.0.0',
+          funding: 'http://example.com/a'
+        })
+      },
+      b: {
+        'package.json': JSON.stringify({
+          name: 'b',
+          version: '1.0.0',
+          funding: {
+            url: 'http://example.com/b',
+            type: 'Lorem'
+          }
+        })
+      }
+    },
+    'package.json': JSON.stringify({
+      name: 'root',
+      version: '1.0.0',
+      dependencies: {
+        a: '1.0.0',
+        b: '1.0.0'
+      }
+    })
+  })
   t.deepEqual(
-    read({}),
+    await read({ path }),
+    {
+      name: 'root',
+      version: '1.0.0',
+      dependencies: {
+        a: {
+          version: '1.0.0',
+          funding: {
+            url: 'http://example.com/a'
+          }
+        },
+        b: {
+          version: '1.0.0',
+          funding: {
+            url: 'http://example.com/b',
+            type: 'Lorem'
+          }
+        }
+      },
+      length: 2
+    },
+    'should return a valid result tree'
+  )
+  t.end()
+})
+
+test('no args', async (t) => {
+  // will parse data from libnpmfund itself which has *many* fund-listed deps
+  const res = await read()
+  t.ok(
+    res.length > 0, // thus length should always be greater than 0
+    'should return valid result'
+  )
+  t.end()
+})
+
+test('empty tree', async (t) => {
+  t.deepEqual(
+    await read({ tree: {} }),
     {
       name: null,
       dependencies: {},
@@ -20,14 +87,16 @@ test('empty tree', (t) => {
   t.end()
 })
 
-test('single item missing funding', (t) => {
+test('single item missing funding', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      dependencies: {
-        'single-item': {
-          name: 'single-item',
-          version: '1.0.0'
+    await read({
+      tree: {
+        name: 'project',
+        dependencies: {
+          'single-item': {
+            name: 'single-item',
+            version: '1.0.0'
+          }
         }
       }
     }),
@@ -41,19 +110,21 @@ test('single item missing funding', (t) => {
   t.end()
 })
 
-test('funding object missing url', (t) => {
+test('funding object missing url', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['single-item', {
-          name: 'single-item',
-          version: '1.0.0',
-          funding: {
-            type: 'Foo'
-          }
-        }]
-      ])
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {
+            name: 'single-item',
+            version: '1.0.0',
+            funding: {
+              type: 'Foo'
+            }
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -65,11 +136,13 @@ test('funding object missing url', (t) => {
   t.end()
 })
 
-test('use path if name is missing', (t) => {
+test('use path if name is missing', async (t) => {
   t.deepEqual(
-    read({
-      name: undefined,
-      path: '/tmp/foo'
+    await read({
+      tree: {
+        name: undefined,
+        path: '/tmp/foo'
+      }
     }),
     {
       name: '/tmp/foo',
@@ -81,25 +154,27 @@ test('use path if name is missing', (t) => {
   t.end()
 })
 
-test('single item tree', (t) => {
+test('single item tree', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['single-item', {
-          to: {
-            name: 'single-item',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
               name: 'single-item',
-              version: '1.0.0',
-              funding: {
-                type: 'foo',
-                url: 'http://example.com'
+              package: {
+                name: 'single-item',
+                version: '1.0.0',
+                funding: {
+                  type: 'foo',
+                  url: 'http://example.com'
+                }
               }
             }
-          }
-        }]
-      ])
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -119,31 +194,33 @@ test('single item tree', (t) => {
   t.end()
 })
 
-test('multiple funding sources', (t) => {
+test('multiple funding sources', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['single-item', {
-          to: {
-            name: 'single-item',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
               name: 'single-item',
-              version: '1.0.0',
-              funding: [
-                {
-                  type: 'foo',
-                  url: 'http://example.com/foo'
-                },
-                {
-                  type: 'bar',
-                  url: 'http://example.com/bar'
-                }
-              ]
+              package: {
+                name: 'single-item',
+                version: '1.0.0',
+                funding: [
+                  {
+                    type: 'foo',
+                    url: 'http://example.com/foo'
+                  },
+                  {
+                    type: 'bar',
+                    url: 'http://example.com/bar'
+                  }
+                ]
+              }
             }
-          }
-        }]
-      ])
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -169,35 +246,37 @@ test('multiple funding sources', (t) => {
   t.end()
 })
 
-test('deep-nested missing funding-info obj', (t) => {
+test('deep-nested missing funding-info obj', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      package: {
-        funding: 'http://example.com'
-      },
-      edgesOut: new Map([
-        ['no-funding-info-item', {
-          to: {
-            name: 'no-funding-info-item',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        package: {
+          funding: 'http://example.com'
+        },
+        edgesOut: new Map([
+          ['no-funding-info-item', {
+            to: {
               name: 'no-funding-info-item',
-              version: '1.0.0'
-            },
-            edgesOut: new Map([
-              ['single-item', {
-                to: {
-                  name: 'single-item',
-                  package: {
+              package: {
+                name: 'no-funding-info-item',
+                version: '1.0.0'
+              },
+              edgesOut: new Map([
+                ['single-item', {
+                  to: {
                     name: 'single-item',
-                    version: '1.0.0'
+                    package: {
+                      name: 'single-item',
+                      version: '1.0.0'
+                    }
                   }
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                }]
+              ])
+            }
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -212,12 +291,14 @@ test('deep-nested missing funding-info obj', (t) => {
   t.end()
 })
 
-test('top-level funding info', (t) => {
+test('top-level funding info', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      package: {
-        funding: 'http://example.com'
+    await read({
+      tree: {
+        name: 'project',
+        package: {
+          funding: 'http://example.com'
+        }
       }
     }),
     {
@@ -233,22 +314,24 @@ test('top-level funding info', (t) => {
   t.end()
 })
 
-test('use string shorthand', (t) => {
+test('use string shorthand', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['single-item', {
-          to: {
-            name: 'single-item',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
               name: 'single-item',
-              version: '1.0.0',
-              funding: 'http://example.com'
+              package: {
+                name: 'single-item',
+                version: '1.0.0',
+                funding: 'http://example.com'
+              }
             }
-          }
-        }]
-      ])
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -267,99 +350,101 @@ test('use string shorthand', (t) => {
   t.end()
 })
 
-test('duplicate items along the tree', (t) => {
+test('duplicate items along the tree', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      package: {
-        version: '2.3.4'
-      },
-      edgesOut: new Map([
-        ['single-item', {
-          to: {
-            name: 'single-item',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        package: {
+          version: '2.3.4'
+        },
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
               name: 'single-item',
-              version: '1.0.0',
-              funding: {
-                type: 'foo',
-                url: 'https://example.com'
-              }
-            },
-            edgesOut: new Map([
-              ['shared-top-first', {
-                to: {
-                  name: 'shared-top-first',
-                  package: {
+              package: {
+                name: 'single-item',
+                version: '1.0.0',
+                funding: {
+                  type: 'foo',
+                  url: 'https://example.com'
+                }
+              },
+              edgesOut: new Map([
+                ['shared-top-first', {
+                  to: {
                     name: 'shared-top-first',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
+                    package: {
+                      name: 'shared-top-first',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
                     }
                   }
-                }
-              }],
-              ['sub-dep', {
-                to: {
-                  name: 'sub-dep',
-                  package: {
+                }],
+                ['sub-dep', {
+                  to: {
                     name: 'sub-dep',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  },
-                  edgesOut: new Map([
-                    ['shared-nested-first', {
-                      to: {
-                        name: 'shared-nested-first',
-                        package: {
+                    package: {
+                      name: 'sub-dep',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
+                    },
+                    edgesOut: new Map([
+                      ['shared-nested-first', {
+                        to: {
                           name: 'shared-nested-first',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'https://example.com'
-                          }
-                        },
-                        edgesOut: new Map([
-                          ['shared-top-first', {
-                            to: {
-                              name: 'shared-top-first',
-                              package: {
+                          package: {
+                            name: 'shared-nested-first',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'https://example.com'
+                            }
+                          },
+                          edgesOut: new Map([
+                            ['shared-top-first', {
+                              to: {
                                 name: 'shared-top-first',
-                                version: '1.0.0',
-                                funding: {
-                                  type: 'foo',
-                                  url: 'https://example.com'
+                                package: {
+                                  name: 'shared-top-first',
+                                  version: '1.0.0',
+                                  funding: {
+                                    type: 'foo',
+                                    url: 'https://example.com'
+                                  }
                                 }
                               }
-                            }
-                          }]
-                        ])
-                      }
-                    }]
-                  ])
-                }
-              }],
-              ['shared-nested-first', {
-                to: {
-                  name: 'shared-nested-first',
-                  package: {
+                            }]
+                          ])
+                        }
+                      }]
+                    ])
+                  }
+                }],
+                ['shared-nested-first', {
+                  to: {
                     name: 'shared-nested-first',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
+                    package: {
+                      name: 'shared-nested-first',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
                     }
                   }
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                }]
+              ])
+            }
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -403,56 +488,58 @@ test('duplicate items along the tree', (t) => {
   t.end()
 })
 
-test('multi-level nested items tree', (t) => {
+test('multi-level nested items tree', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['first-level-dep', {
-          to: {
-            name: 'first-level-dep',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['first-level-dep', {
+            to: {
               name: 'first-level-dep',
-              version: '1.0.0',
-              funding: {
-                type: 'foo',
-                url: 'https://example.com'
-              }
-            },
-            edgesOut: new Map([
-              ['sub-dep', {
-                to: {
-                  name: 'sub-dep',
-                  package: {
-                    name: 'sub-dep',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  },
-                  edgesOut: new Map([
-                    ['sub-sub-dep', {
-                      to: {
-                        name: 'sub-sub-dep',
-                        package: {
-                          name: 'sub-sub-dep',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'https://example.com'
-                          }
-                        },
-                        edgesOut: new Map()
-                      }
-                    }]
-                  ])
+              package: {
+                name: 'first-level-dep',
+                version: '1.0.0',
+                funding: {
+                  type: 'foo',
+                  url: 'https://example.com'
                 }
-              }]
-            ])
-          }
-        }]
-      ])
+              },
+              edgesOut: new Map([
+                ['sub-dep', {
+                  to: {
+                    name: 'sub-dep',
+                    package: {
+                      name: 'sub-dep',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
+                    },
+                    edgesOut: new Map([
+                      ['sub-sub-dep', {
+                        to: {
+                          name: 'sub-sub-dep',
+                          package: {
+                            name: 'sub-sub-dep',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'https://example.com'
+                            }
+                          },
+                          edgesOut: new Map()
+                        }
+                      }]
+                    ])
+                  }
+                }]
+              ])
+            }
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -490,129 +577,131 @@ test('multi-level nested items tree', (t) => {
   t.end()
 })
 
-test('missing fund nested items tree', (t) => {
+test('missing fund nested items tree', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['first-level-dep', {
-          to: {
-            name: 'first-level-dep',
-            package: {
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['first-level-dep', {
+            to: {
               name: 'first-level-dep',
-              version: '1.0.0',
-              funding: {
-                type: 'foo'
-              }
-            },
-            edgesOut: new Map([
-              ['sub-dep', {
-                to: {
-                  name: 'sub-dep',
-                  package: {
-                    name: 'sub-dep',
-                    version: '1.0.0'
-                  },
-                  edgesOut: new Map([
-                    ['sub-sub-dep-01', {
-                      to: {
-                        name: 'sub-sub-dep-01',
-                        package: {
-                          name: 'sub-sub-dep-01',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'https://example.com'
-                          }
-                        },
-                        edgesOut: new Map([
-                          ['non-funding-child', {
-                            to: {
-                              name: 'non-funding-child',
-                              package: {
-                                name: 'non-funding-child',
-                                version: '1.0.0'
-                              },
-                              edgesOut: new Map([
-                                ['sub-sub-sub-dep', {
-                                  to: {
-                                    name: 'sub-sub-sub-dep',
-                                    package: {
-                                      name: 'sub-sub-sub-dep',
-                                      version: '1.0.0',
-                                      funding: {
-                                        type: 'foo',
-                                        url: 'https://example.com'
-                                      }
-                                    }
-                                  }
-                                }]
-                              ])
-                            }
-                          }]
-                        ])
-                      }
-                    }],
-                    ['sub-sub-dep-02', {
-                      to: {
-                        name: 'sub-sub-dep-02',
-                        package: {
-                          name: 'sub-sub-dep-02',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'https://example.com'
-                          }
-                        },
-                        edgesOut: new Map()
-                      }
-                    }],
-                    ['sub-sub-dep-03', {
-                      to: {
-                        name: 'sub-sub-dep-03',
-                        package: {
-                          name: 'sub-sub-dep-03',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'git://example.git'
-                          }
-                        },
-                        edgesOut: new Map([
-                          ['sub-sub-sub-dep-03', {
-                            to: {
-                              name: 'sub-sub-sub-dep-03',
-                              package: {
-                                name: 'sub-sub-sub-dep-03',
-                                version: '1.0.0'
-                              },
-                              edgesOut: new Map([
-                                ['sub-sub-sub-sub-dep', {
-                                  to: {
-                                    name: 'sub-sub-sub-sub-dep',
-                                    package: {
-                                      name: 'sub-sub-sub-sub-dep',
-                                      version: '1.0.0',
-                                      funding: {
-                                        type: 'foo',
-                                        url: 'http://example.com'
-                                      }
-                                    }
-                                  }
-                                }]
-                              ])
-                            }
-                          }]
-                        ])
-                      }
-                    }]
-                  ])
+              package: {
+                name: 'first-level-dep',
+                version: '1.0.0',
+                funding: {
+                  type: 'foo'
                 }
-              }]
-            ])
-          }
-        }]
-      ])
+              },
+              edgesOut: new Map([
+                ['sub-dep', {
+                  to: {
+                    name: 'sub-dep',
+                    package: {
+                      name: 'sub-dep',
+                      version: '1.0.0'
+                    },
+                    edgesOut: new Map([
+                      ['sub-sub-dep-01', {
+                        to: {
+                          name: 'sub-sub-dep-01',
+                          package: {
+                            name: 'sub-sub-dep-01',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'https://example.com'
+                            }
+                          },
+                          edgesOut: new Map([
+                            ['non-funding-child', {
+                              to: {
+                                name: 'non-funding-child',
+                                package: {
+                                  name: 'non-funding-child',
+                                  version: '1.0.0'
+                                },
+                                edgesOut: new Map([
+                                  ['sub-sub-sub-dep', {
+                                    to: {
+                                      name: 'sub-sub-sub-dep',
+                                      package: {
+                                        name: 'sub-sub-sub-dep',
+                                        version: '1.0.0',
+                                        funding: {
+                                          type: 'foo',
+                                          url: 'https://example.com'
+                                        }
+                                      }
+                                    }
+                                  }]
+                                ])
+                              }
+                            }]
+                          ])
+                        }
+                      }],
+                      ['sub-sub-dep-02', {
+                        to: {
+                          name: 'sub-sub-dep-02',
+                          package: {
+                            name: 'sub-sub-dep-02',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'https://example.com'
+                            }
+                          },
+                          edgesOut: new Map()
+                        }
+                      }],
+                      ['sub-sub-dep-03', {
+                        to: {
+                          name: 'sub-sub-dep-03',
+                          package: {
+                            name: 'sub-sub-dep-03',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'git://example.git'
+                            }
+                          },
+                          edgesOut: new Map([
+                            ['sub-sub-sub-dep-03', {
+                              to: {
+                                name: 'sub-sub-sub-dep-03',
+                                package: {
+                                  name: 'sub-sub-sub-dep-03',
+                                  version: '1.0.0'
+                                },
+                                edgesOut: new Map([
+                                  ['sub-sub-sub-sub-dep', {
+                                    to: {
+                                      name: 'sub-sub-sub-sub-dep',
+                                      package: {
+                                        name: 'sub-sub-sub-sub-dep',
+                                        version: '1.0.0',
+                                        funding: {
+                                          type: 'foo',
+                                          url: 'http://example.com'
+                                        }
+                                      }
+                                    }
+                                  }]
+                                ])
+                              }
+                            }]
+                          ])
+                        }
+                      }]
+                    ])
+                  }
+                }]
+              ])
+            }
+          }]
+        ])
+      }
     }),
     {
       name: 'project',
@@ -655,69 +744,72 @@ test('missing fund nested items tree', (t) => {
   t.end()
 })
 
-test('countOnly option', (t) => {
+test('countOnly option', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['first-level-dep', {
-          to: {
-            name: 'first-level-dep',
-            package: {
+    await read({
+      countOnly: true,
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['first-level-dep', {
+            to: {
               name: 'first-level-dep',
-              version: '1.0.0',
-              funding: {
-                type: 'foo'
-              }
-            },
-            edgesOut: new Map([
-              ['sub-dep', {
-                to: {
-                  name: 'sub-dep',
-                  package: {
-                    name: 'sub-dep',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  },
-                  edgesOut: new Map([
-                    ['sub-sub-dep', {
-                      to: {
-                        name: 'sub-sub-dep',
-                        package: {
-                          name: 'sub-sub-dep',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'https://example.com'
-                          }
-                        },
-                        edgesOut: new Map()
-                      }
-                    }]
-                  ])
+              package: {
+                name: 'first-level-dep',
+                version: '1.0.0',
+                funding: {
+                  type: 'foo'
                 }
-              }],
-              ['sub-sub-dep', {
-                to: {
-                  name: 'sub-sub-dep',
-                  package: {
+              },
+              edgesOut: new Map([
+                ['sub-dep', {
+                  to: {
+                    name: 'sub-dep',
+                    package: {
+                      name: 'sub-dep',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
+                    },
+                    edgesOut: new Map([
+                      ['sub-sub-dep', {
+                        to: {
+                          name: 'sub-sub-dep',
+                          package: {
+                            name: 'sub-sub-dep',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'https://example.com'
+                            }
+                          },
+                          edgesOut: new Map()
+                        }
+                      }]
+                    ])
+                  }
+                }],
+                ['sub-sub-dep', {
+                  to: {
                     name: 'sub-sub-dep',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
+                    package: {
+                      name: 'sub-sub-dep',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
                     }
                   }
-                }
-              }]
-            ])
-          }
-        }]
-      ])
-    }, { countOnly: true }),
+                }]
+              ])
+            }
+          }]
+        ])
+      }
+    }),
     {
       length: 2
     },
@@ -726,79 +818,82 @@ test('countOnly option', (t) => {
   t.end()
 })
 
-test('handle different versions', (t) => {
+test('handle different versions', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      edgesOut: new Map([
-        ['foo', {
-          to: {
-            name: 'foo',
-            package: {
+    await read({
+      countOnly: true,
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['foo', {
+            to: {
               name: 'foo',
-              version: '1.0.0',
-              funding: {
-                type: 'foo',
-                url: 'https://example.com'
-              }
-            },
-            edgesOut: new Map([
-              ['bar', {
-                to: {
-                  name: 'bar',
-                  package: {
+              package: {
+                name: 'foo',
+                version: '1.0.0',
+                funding: {
+                  type: 'foo',
+                  url: 'https://example.com'
+                }
+              },
+              edgesOut: new Map([
+                ['bar', {
+                  to: {
                     name: 'bar',
-                    version: '1.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
+                    package: {
+                      name: 'bar',
+                      version: '1.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
                     }
                   }
-                }
-              }]
-            ])
-          }
-        }],
-        ['lorem', {
-          to: {
-            name: 'lorem',
-            package: {
-              name: 'lorem'
-            },
-            edgesOut: new Map([
-              ['foo', {
-                to: {
-                  name: 'foo',
-                  package: {
+                }]
+              ])
+            }
+          }],
+          ['lorem', {
+            to: {
+              name: 'lorem',
+              package: {
+                name: 'lorem'
+              },
+              edgesOut: new Map([
+                ['foo', {
+                  to: {
                     name: 'foo',
-                    version: '2.0.0',
-                    funding: {
-                      type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  },
-                  edgesOut: new Map([
-                    ['foo-bar', {
-                      to: {
-                        name: 'foo-bar',
-                        package: {
+                    package: {
+                      name: 'foo',
+                      version: '2.0.0',
+                      funding: {
+                        type: 'foo',
+                        url: 'https://example.com'
+                      }
+                    },
+                    edgesOut: new Map([
+                      ['foo-bar', {
+                        to: {
                           name: 'foo-bar',
-                          version: '1.0.0',
-                          funding: {
-                            type: 'foo',
-                            url: 'https://example.com'
+                          package: {
+                            name: 'foo-bar',
+                            version: '1.0.0',
+                            funding: {
+                              type: 'foo',
+                              url: 'https://example.com'
+                            }
                           }
                         }
-                      }
-                    }]
-                  ])
-                }
-              }]
-            ])
-          }
-        }]
-      ])
-    }, { countOnly: true }),
+                      }]
+                    ])
+                  }
+                }]
+              ])
+            }
+          }]
+        ])
+      }
+    }),
     {
       length: 4
     },
@@ -807,15 +902,18 @@ test('handle different versions', (t) => {
   t.end()
 })
 
-test('should not count root', (t) => {
+test('should not count root', async (t) => {
   t.deepEqual(
-    read({
-      name: 'project',
-      package: {
-        funding: 'http://example.com'
-      },
-      edgesOut: new Map()
-    }, { countOnly: true }),
+    await read({
+      countOnly: true,
+      tree: {
+        name: 'project',
+        package: {
+          funding: 'http://example.com'
+        },
+        edgesOut: new Map()
+      }
+    }),
     {
       length: 0
     },

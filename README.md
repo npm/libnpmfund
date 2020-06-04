@@ -22,8 +22,9 @@ retrieving **funding** information for packages installed using
 ```js
 const { read } = require('libnpmfund')
 
+const fundingInfo = await read()
 console.log(
-  JSON.stringify(read(), null, 2)
+  JSON.stringify(fundingInfo, null, 2)
 )
 // => {
   length: 2,
@@ -62,10 +63,10 @@ Happy hacking!
 
 ### API
 
-##### <a name="fund.read"></a> `> fund.read([opts])`
+##### <a name="fund.read"></a> `> fund.read([opts]) -> Promise<Object>`
 
-Reads **funding** info from a npm install and returns a tree object that only
-contains packages in which funding info is defined.
+Reads **funding** info from a npm install and returns a promise for a
+tree object that only contains packages in which funding info is defined.
 
 Options:
 
@@ -75,7 +76,7 @@ things such as printing a `6 packages are looking for funding` msg.
 - `tree`: An [`arborist`](https://github.com/npm/arborist) tree to be used
 - `path`: Location to current working directory if not specifying `tree`
 
-##### <a name="fund.normalizeFunding"></a> `> fund.normalizeFunding(funding)`
+##### <a name="fund.normalizeFunding"></a> `> fund.normalizeFunding(funding) -> Object`
 
 From a `funding` `<object|string|array>`, retrieves normalized funding objects
 containing a `url` property.
@@ -89,7 +90,7 @@ normalizeFunding('http://example.com')
 }
 ```
 
-##### <a name="fund.isValidFunding"></a> `> fund.isValidFunding(funding)`
+##### <a name="fund.isValidFunding"></a> `> fund.isValidFunding(funding) -> Boolean`
 
 Returns `<true>` if `funding` is a valid funding object, e.g:
 
