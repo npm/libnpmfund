@@ -119,6 +119,56 @@ test('single item tree', (t) => {
   t.end()
 })
 
+test('multiple funding sources', (t) => {
+  t.deepEqual(
+    read({
+      name: 'project',
+      edgesOut: new Map([
+        ['single-item', {
+          to: {
+            name: 'single-item',
+            package: {
+              name: 'single-item',
+              version: '1.0.0',
+              funding: [
+                {
+                  type: 'foo',
+                  url: 'http://example.com/foo'
+                },
+                {
+                  type: 'bar',
+                  url: 'http://example.com/bar'
+                }
+              ]
+            }
+          }
+        }]
+      ])
+    }),
+    {
+      name: 'project',
+      dependencies: {
+        'single-item': {
+          version: '1.0.0',
+          funding: [
+            {
+              type: 'foo',
+              url: 'http://example.com/foo'
+            },
+            {
+              type: 'bar',
+              url: 'http://example.com/bar'
+            }
+          ]
+        }
+      },
+      length: 1
+    },
+    'should return list with a single item containing multiple funding sources'
+  )
+  t.end()
+})
+
 test('top-level funding info', (t) => {
   t.deepEqual(
     read({
