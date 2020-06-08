@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/libnpmfund.svg)](https://npm.im/libnpmfund)
 [![license](https://img.shields.io/npm/l/libnpmfund.svg)](https://npm.im/libnpmfund)
 [![GitHub Actions](https://github.com/npm/libnpmfund/workflows/node-ci/badge.svg)](https://github.com/npm/libnpmfund/actions?query=workflow%3Anode-ci)
-[![Coverage Status](https://coveralls.io/repos/github/npm/libnpmfund/badge.svg?branch=latest)](https://coveralls.io/github/npm/libnpmfund?branch=latest)
+[![Coverage Status](https://coveralls.io/repos/github/npm/libnpmfund/badge.svg?branch=latest)](https://coveralls.io/github/npm/libnpmfund?branch=master)
 
 [`libnpmfund`](https://github.com/npm/libnpmfund) is a Node.js library for
 retrieving **funding** information for packages installed using
