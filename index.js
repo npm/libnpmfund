@@ -79,7 +79,7 @@ async function read (opts) {
     )
   }
 
-  function attachFundingInfo (target, funding, dep) {
+  function attachFundingInfo (target, funding) {
     if (funding && isValidFunding(funding)) {
       target.funding = normalizeFunding(funding)
       packageWithFundingCount++
@@ -87,13 +87,16 @@ async function read (opts) {
   }
 
   function getFundingDependencies (tree) {
-    const deps = tree && tree.edgesOut && tree.edgesOut.values()
-    if (!deps) return empty()
+    const edges = tree && tree.edgesOut && tree.edgesOut.values()
+    if (!edges) return empty()
 
-    const directDepsWithFunding = Array.from(deps).map(dep => {
-      if (!dep || !dep.to || !dep.to.package) return empty()
+    const directDepsWithFunding = Array.from(edges).map(edge => {
+      if (!edge || !edge.to) return empty()
 
-      const { name, funding, version } = dep.to.package
+      const node = edge.to.target || edge.to
+      if (!node.package) return empty()
+
+      const { name, funding, version } = node.package
 
       // avoids duplicated items within the funding tree
       if (tracked(name, version)) return empty()
@@ -104,25 +107,24 @@ async function read (opts) {
         fundingItem.version = version
       }
 
-      attachFundingInfo(fundingItem, funding, dep)
+      attachFundingInfo(fundingItem, funding)
 
       return {
-        dep,
+        node,
         fundingItem
       }
     })
 
     return directDepsWithFunding.reduce(
-      (res, { dep: directDep, fundingItem }, i) => {
+      (res, { node, fundingItem }, i) => {
         if (!fundingItem ||
           fundingItem.length === 0 ||
-          !directDep ||
-          !directDep.to) return res
+          !node) return res
 
         // recurse
-        const transitiveDependencies = directDep.to.edgesOut &&
-          directDep.to.edgesOut.size > 0 &&
-          getFundingDependencies(directDep.to)
+        const transitiveDependencies = node.edgesOut &&
+          node.edgesOut.size > 0 &&
+          getFundingDependencies(node)
 
         // if we're only counting items there's no need
         // to add all the data to the resulting object
@@ -134,7 +136,7 @@ async function read (opts) {
         }
 
         if (isValidFunding(fundingItem.funding)) {
-          res[directDep.to.name] = fundingItem
+          res[node.package.name] = fundingItem
         } else if (hasDependencies(fundingItem.dependencies)) {
           res[_trailingDependencies] =
             Object.assign(

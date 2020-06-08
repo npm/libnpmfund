@@ -7,6 +7,99 @@ const {
   isValidFunding
 } = require('./index.js')
 
+test('symlink tree', async (t) => {
+  const path = t.testdir({
+    'package.json': JSON.stringify({
+      name: 'root',
+      version: '1.0.0',
+      dependencies: {
+        a: 'file:./a'
+      }
+    }),
+    a: {
+      'package.json': JSON.stringify({
+        name: 'a',
+        version: '1.0.0',
+        funding: 'http://example.com/a',
+        dependencies: {
+          b: 'file:../b',
+          c: 'file:../c'
+        }
+      })
+    },
+    b: {
+      'package.json': JSON.stringify({
+        name: 'b',
+        version: '1.0.0',
+        funding: 'http://example.com/b'
+      })
+    },
+    c: {
+      'package.json': JSON.stringify({
+        name: 'c',
+        version: '1.0.0',
+        funding: 'http://example.com/c',
+        dependencies: {
+          d: 'file:../d'
+        }
+      })
+    },
+    d: {
+      'package.json': JSON.stringify({
+        name: 'd',
+        version: '1.0.0',
+        funding: 'http://example.com/d'
+      })
+    },
+    node_modules: {
+      a: t.fixture('symlink', '../a'),
+      b: t.fixture('symlink', '../b'),
+      c: t.fixture('symlink', '../c'),
+      d: t.fixture('symlink', '../d')
+    }
+  })
+
+  t.deepEqual(
+    await read({ path }),
+    {
+      dependencies: {
+        a: {
+          funding: {
+            url: 'http://example.com/a'
+          },
+          version: '1.0.0',
+          dependencies: {
+            b: {
+              funding: {
+                url: 'http://example.com/b'
+              },
+              version: '1.0.0'
+            },
+            c: {
+              funding: {
+                url: 'http://example.com/c'
+              },
+              version: '1.0.0',
+              dependencies: {
+                d: {
+                  funding: {
+                    url: 'http://example.com/d'
+                  },
+                  version: '1.0.0'
+                }
+              }
+            }
+          }
+        }
+      },
+      length: 4,
+      name: 'root',
+      version: '1.0.0'
+    },
+    'should read symlinked tree'
+  )
+})
+
 test('loading tree from path', async (t) => {
   const path = t.testdir({
     node_modules: {
@@ -92,18 +185,109 @@ test('single item missing funding', async (t) => {
     await read({
       tree: {
         name: 'project',
-        dependencies: {
-          'single-item': {
-            name: 'single-item',
-            version: '1.0.0'
-          }
-        }
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
+              'single-item': {
+                name: 'single-item',
+                version: '1.0.0'
+              }
+            }
+          }]
+        ])
       }
     }),
     {
       name: 'project',
       dependencies: {},
       length: 0
+    },
+    'should return empty list'
+  )
+  t.end()
+})
+
+test('missing node to connection', async (t) => {
+  t.deepEqual(
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {}]
+        ])
+      }
+    }),
+    {
+      name: 'project',
+      dependencies: {},
+      length: 0
+    },
+    'should return empty list'
+  )
+  t.end()
+})
+
+test('missing package info', async (t) => {
+  t.deepEqual(
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
+              name: 'single-item'
+            }
+          }]
+        ])
+      }
+    }),
+    {
+      name: 'project',
+      dependencies: {},
+      length: 0
+    },
+    'should return empty list'
+  )
+  t.end()
+})
+
+test('missing nested package info', async (t) => {
+  t.deepEqual(
+    await read({
+      tree: {
+        name: 'project',
+        edgesOut: new Map([
+          ['single-item', {
+            to: {
+              name: 'single-item',
+              package: {
+                name: 'single-item',
+                version: '1.0.0',
+                funding: 'http://example.com'
+              },
+              edgesOut: new Map([
+                ['foo', {
+                  to: {
+                    name: 'foo'
+                  }
+                }]
+              ])
+            }
+          }]
+        ])
+      }
+    }),
+    {
+      name: 'project',
+      dependencies: {
+        'single-item': {
+          version: '1.0.0',
+          funding: {
+            url: 'http://example.com'
+          }
+        }
+      },
+      length: 1
     },
     'should return empty list'
   )
@@ -117,10 +301,15 @@ test('funding object missing url', async (t) => {
         name: 'project',
         edgesOut: new Map([
           ['single-item', {
-            name: 'single-item',
-            version: '1.0.0',
-            funding: {
-              type: 'Foo'
+            to: {
+              name: 'single-item',
+              package: {
+                name: 'single-item',
+                version: '1.0.0',
+                funding: {
+                  type: 'Foo'
+                }
+              }
             }
           }]
         ])
