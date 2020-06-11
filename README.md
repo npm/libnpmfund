@@ -73,8 +73,30 @@ Options:
 - `countOnly`: Uses the tree-traversal logic from **npm fund** but skips over
 any obj definition and just returns an obj containing `{ length }` - useful for
 things such as printing a `6 packages are looking for funding` msg.
-- `tree`: An [`arborist`](https://github.com/npm/arborist) tree to be used
-- `path`: Location to current working directory if not specifying `tree`
+- `path`: Location to current working directory
+
+##### <a name="fund.readTree"></a> `> fund.readTree(tree, [opts]) -> Promise<Object>`
+
+Reads **funding** info from a given install tree and returns a tree object
+that only contains packages in which funding info is defined.
+
+- `tree`: An [`arborist`](https://github.com/npm/arborist) tree to be used, e.g:
+
+```js
+const Arborist = require('@npmcli/arborist')
+const { readTree } = require('libnpmfund')
+
+const arb = new Arborist({ path: process.cwd() })
+const tree = await arb.loadActual()
+
+return readTree(tree, { countOnly: false })
+```
+
+Options:
+
+- `countOnly`: Uses the tree-traversal logic from **npm fund** but skips over
+any obj definition and just returns an obj containing `{ length }` - useful for
+things such as printing a `6 packages are looking for funding` msg.
 
 ##### <a name="fund.normalizeFunding"></a> `> fund.normalizeFunding(funding) -> Object`
 

@@ -37,18 +37,11 @@ function isValidFunding (funding) {
 
 const empty = () => Object.create(null)
 
-// retrieves funding info for project at cwd or given opts.idealTree if avail
-async function read (opts) {
+function readTree (tree, opts) {
   let packageWithFundingCount = 0
   const seen = new Set()
-  const { countOnly, path, tree, ...arbOpts } = opts || {}
-  let idealTree = tree
+  const { countOnly } = opts || {}
   const _trailingDependencies = Symbol('trailingDependencies')
-
-  if (!tree) {
-    const arb = new Arborist({ ...arbOpts, path })
-    idealTree = await arb.loadActual()
-  }
 
   function tracked (name, version) {
     const key = String(name) + String(version)
@@ -150,33 +143,41 @@ async function read (opts) {
       }, countOnly ? null : empty())
   }
 
-  const idealTreeDependencies = getFundingDependencies(idealTree)
+  const treeDependencies = getFundingDependencies(tree)
   const result = {
     length: packageWithFundingCount
   }
 
   if (!countOnly) {
     const name =
-      (idealTree && idealTree.package && idealTree.package.name) ||
-      (idealTree && idealTree.name)
-    result.name = name || (idealTree && idealTree.path)
+      (tree && tree.package && tree.package.name) ||
+      (tree && tree.name)
+    result.name = name || (tree && tree.path)
 
-    if (idealTree && idealTree.package && idealTree.package.version) {
-      result.version = idealTree.package.version
+    if (tree && tree.package && tree.package.version) {
+      result.version = tree.package.version
     }
 
-    if (idealTree && idealTree.package && idealTree.package.funding) {
-      result.funding = normalizeFunding(idealTree.package.funding)
+    if (tree && tree.package && tree.package.funding) {
+      result.funding = normalizeFunding(tree.package.funding)
     }
 
-    result.dependencies = retrieveDependencies(idealTreeDependencies)
+    result.dependencies = retrieveDependencies(treeDependencies)
   }
 
   return result
 }
 
+async function read (opts) {
+  const arb = new Arborist(opts)
+  const tree = await arb.loadActual()
+
+  return readTree(tree, opts)
+}
+
 module.exports = {
   read,
+  readTree,
   normalizeFunding,
   isValidFunding
 }
