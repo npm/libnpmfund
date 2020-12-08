@@ -47,6 +47,6 @@
     "tap": "^14.10.7"
   },
   "dependencies": {
-    "@npmcli/arborist": "^0.0.33 || ^1.x"
+    "@npmcli/arborist": "^2.0.0"
   }
 }
