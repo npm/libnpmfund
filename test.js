@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const t = require('tap')
 const {
   read,
   readTree,
@@ -8,7 +8,7 @@ const {
   isValidFunding,
 } = require('./index.js')
 
-test('symlink tree', async (t) => {
+t.test('symlink tree', async (t) => {
   const path = t.testdir({
     'package.json': JSON.stringify({
       name: 'root',
@@ -101,7 +101,7 @@ test('symlink tree', async (t) => {
   )
 })
 
-test('loading tree from path', async (t) => {
+t.test('loading tree from path', async (t) => {
   const path = t.testdir({
     node_modules: {
       a: {
@@ -167,7 +167,7 @@ test('loading tree from path', async (t) => {
   )
 })
 
-test('no args', async (t) => {
+t.test('no args', async (t) => {
   // will parse data from libnpmfund itself which has *many* fund-listed deps
   const res = await read()
   t.ok(
@@ -176,7 +176,7 @@ test('no args', async (t) => {
   )
 })
 
-test('empty tree', (t) => {
+t.test('empty tree', (t) => {
   t.same(
     readTree({}, {}),
     {
@@ -189,7 +189,7 @@ test('empty tree', (t) => {
   t.end()
 })
 
-test('single item missing funding', (t) => {
+t.test('single item missing funding', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -214,7 +214,7 @@ test('single item missing funding', (t) => {
   t.end()
 })
 
-test('missing node to connection', (t) => {
+t.test('missing node to connection', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -232,7 +232,7 @@ test('missing node to connection', (t) => {
   t.end()
 })
 
-test('missing package info', (t) => {
+t.test('missing package info', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -254,7 +254,7 @@ test('missing package info', (t) => {
   t.end()
 })
 
-test('missing nested package info', (t) => {
+t.test('missing nested package info', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -295,7 +295,7 @@ test('missing nested package info', (t) => {
   t.end()
 })
 
-test('funding object missing url', (t) => {
+t.test('funding object missing url', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -324,7 +324,7 @@ test('funding object missing url', (t) => {
   t.end()
 })
 
-test('use path if name is missing', (t) => {
+t.test('use path if name is missing', (t) => {
   t.same(
     readTree({
       name: undefined,
@@ -340,7 +340,7 @@ test('use path if name is missing', (t) => {
   t.end()
 })
 
-test('single item tree', (t) => {
+t.test('single item tree', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -378,7 +378,7 @@ test('single item tree', (t) => {
   t.end()
 })
 
-test('multiple funding sources', (t) => {
+t.test('multiple funding sources', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -428,7 +428,7 @@ test('multiple funding sources', (t) => {
   t.end()
 })
 
-test('deep-nested missing funding-info obj', (t) => {
+t.test('deep-nested missing funding-info obj', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -471,7 +471,7 @@ test('deep-nested missing funding-info obj', (t) => {
   t.end()
 })
 
-test('top-level funding info', (t) => {
+t.test('top-level funding info', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -492,7 +492,7 @@ test('top-level funding info', (t) => {
   t.end()
 })
 
-test('use string shorthand', (t) => {
+t.test('use string shorthand', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -526,7 +526,7 @@ test('use string shorthand', (t) => {
   t.end()
 })
 
-test('duplicate items along the tree', (t) => {
+t.test('duplicate items along the tree', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -662,7 +662,7 @@ test('duplicate items along the tree', (t) => {
   t.end()
 })
 
-test('multi-level nested items tree', (t) => {
+t.test('multi-level nested items tree', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -749,7 +749,7 @@ test('multi-level nested items tree', (t) => {
   t.end()
 })
 
-test('missing fund nested items tree', (t) => {
+t.test('missing fund nested items tree', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -914,7 +914,7 @@ test('missing fund nested items tree', (t) => {
   t.end()
 })
 
-test('countOnly option', (t) => {
+t.test('countOnly option', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -987,7 +987,7 @@ test('countOnly option', (t) => {
   t.end()
 })
 
-test('handle different versions', (t) => {
+t.test('handle different versions', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -1070,7 +1070,7 @@ test('handle different versions', (t) => {
   t.end()
 })
 
-test('should not count root', (t) => {
+t.test('should not count root', (t) => {
   t.same(
     readTree({
       name: 'project',
@@ -1089,7 +1089,7 @@ test('should not count root', (t) => {
   t.end()
 })
 
-test('retrieve funding info from valid objects', (t) => {
+t.test('retrieve funding info from valid objects', (t) => {
   t.same(
     normalizeFunding({
       url: 'http://example.com',
@@ -1126,7 +1126,7 @@ test('retrieve funding info from valid objects', (t) => {
   t.end()
 })
 
-test('retrieve funding info from invalid objects', (t) => {
+t.test('retrieve funding info from invalid objects', (t) => {
   t.same(
     normalizeFunding({}),
     {},
@@ -1145,7 +1145,7 @@ test('retrieve funding info from invalid objects', (t) => {
   t.end()
 })
 
-test('retrieve funding info string shorthand', (t) => {
+t.test('retrieve funding info string shorthand', (t) => {
   t.same(
     normalizeFunding('http://example.com'),
     {
@@ -1156,7 +1156,7 @@ test('retrieve funding info string shorthand', (t) => {
   t.end()
 })
 
-test('retrieve funding info from an array', (t) => {
+t.test('retrieve funding info from an array', (t) => {
   t.same(
     normalizeFunding([
       'http://example.com',
@@ -1199,7 +1199,7 @@ test('retrieve funding info from an array', (t) => {
   t.end()
 })
 
-test('valid funding objects', (t) => {
+t.test('valid funding objects', (t) => {
   t.ok(
     isValidFunding({ url: 'http://example.com' }),
     'should return true for url-only valid obj'
@@ -1223,7 +1223,7 @@ test('valid funding objects', (t) => {
   t.end()
 })
 
-test('invalid funding objects', (t) => {
+t.test('invalid funding objects', (t) => {
   t.notOk(
     isValidFunding({ url: 'ftp://example.com' }),
     'should return false if using invalid url'
