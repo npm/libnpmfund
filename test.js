@@ -60,7 +60,7 @@ test('symlink tree', async (t) => {
     }
   })
 
-  t.deepEqual(
+  t.same(
     await read({ path }),
     {
       dependencies: {
@@ -132,7 +132,7 @@ test('loading tree from path', async (t) => {
     })
   })
 
-  t.deepEqual(
+  t.same(
     await read({ path }),
     {
       name: 'root',
@@ -158,7 +158,7 @@ test('loading tree from path', async (t) => {
   )
 
   // countOnly opt
-  t.deepEqual(
+  t.same(
     await read({ countOnly: true, path }),
     {
       length: 2
@@ -177,7 +177,7 @@ test('no args', async (t) => {
 })
 
 test('empty tree', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({}, {}),
     {
       name: null,
@@ -190,7 +190,7 @@ test('empty tree', (t) => {
 })
 
 test('single item missing funding', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -215,7 +215,7 @@ test('single item missing funding', (t) => {
 })
 
 test('missing node to connection', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -233,7 +233,7 @@ test('missing node to connection', (t) => {
 })
 
 test('missing package info', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -255,7 +255,7 @@ test('missing package info', (t) => {
 })
 
 test('missing nested package info', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -296,7 +296,7 @@ test('missing nested package info', (t) => {
 })
 
 test('funding object missing url', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -325,7 +325,7 @@ test('funding object missing url', (t) => {
 })
 
 test('use path if name is missing', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: undefined,
       path: '/tmp/foo'
@@ -341,7 +341,7 @@ test('use path if name is missing', (t) => {
 })
 
 test('single item tree', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -379,7 +379,7 @@ test('single item tree', (t) => {
 })
 
 test('multiple funding sources', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -429,7 +429,7 @@ test('multiple funding sources', (t) => {
 })
 
 test('deep-nested missing funding-info obj', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       package: {
@@ -472,7 +472,7 @@ test('deep-nested missing funding-info obj', (t) => {
 })
 
 test('top-level funding info', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       package: {
@@ -493,7 +493,7 @@ test('top-level funding info', (t) => {
 })
 
 test('use string shorthand', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -527,7 +527,7 @@ test('use string shorthand', (t) => {
 })
 
 test('duplicate items along the tree', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       package: {
@@ -663,7 +663,7 @@ test('duplicate items along the tree', (t) => {
 })
 
 test('multi-level nested items tree', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -750,7 +750,7 @@ test('multi-level nested items tree', (t) => {
 })
 
 test('missing fund nested items tree', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -915,7 +915,7 @@ test('missing fund nested items tree', (t) => {
 })
 
 test('countOnly option', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -988,7 +988,7 @@ test('countOnly option', (t) => {
 })
 
 test('handle different versions', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       edgesOut: new Map([
@@ -1071,7 +1071,7 @@ test('handle different versions', (t) => {
 })
 
 test('should not count root', (t) => {
-  t.deepEqual(
+  t.same(
     readTree({
       name: 'project',
       package: {
@@ -1090,7 +1090,7 @@ test('should not count root', (t) => {
 })
 
 test('retrieve funding info from valid objects', (t) => {
-  t.deepEqual(
+  t.same(
     normalizeFunding({
       url: 'http://example.com',
       type: 'Foo'
@@ -1101,7 +1101,7 @@ test('retrieve funding info from valid objects', (t) => {
     },
     'should return standard object fields'
   )
-  t.deepEqual(
+  t.same(
     normalizeFunding({
       extra: 'Foo',
       url: 'http://example.com',
@@ -1114,7 +1114,7 @@ test('retrieve funding info from valid objects', (t) => {
     },
     'should leave untouched extra fields'
   )
-  t.deepEqual(
+  t.same(
     normalizeFunding({
       url: 'http://example.com'
     }),
@@ -1127,17 +1127,17 @@ test('retrieve funding info from valid objects', (t) => {
 })
 
 test('retrieve funding info from invalid objects', (t) => {
-  t.deepEqual(
+  t.same(
     normalizeFunding({}),
     {},
     'should passthrough empty objects'
   )
-  t.deepEqual(
+  t.same(
     normalizeFunding(),
     undefined,
     'should not care about undefined'
   )
-  t.deepEqual(
+  t.same(
     normalizeFunding(),
     null,
     'should not care about null'
@@ -1146,7 +1146,7 @@ test('retrieve funding info from invalid objects', (t) => {
 })
 
 test('retrieve funding info string shorthand', (t) => {
-  t.deepEqual(
+  t.same(
     normalizeFunding('http://example.com'),
     {
       url: 'http://example.com'
@@ -1157,7 +1157,7 @@ test('retrieve funding info string shorthand', (t) => {
 })
 
 test('retrieve funding info from an array', (t) => {
-  t.deepEqual(
+  t.same(
     normalizeFunding([
       'http://example.com',
       {
