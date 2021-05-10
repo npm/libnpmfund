@@ -5,7 +5,7 @@ const {
   read,
   readTree,
   normalizeFunding,
-  isValidFunding
+  isValidFunding,
 } = require('./index.js')
 
 test('symlink tree', async (t) => {
@@ -14,8 +14,8 @@ test('symlink tree', async (t) => {
       name: 'root',
       version: '1.0.0',
       dependencies: {
-        a: 'file:./a'
-      }
+        a: 'file:./a',
+      },
     }),
     a: {
       'package.json': JSON.stringify({
@@ -24,16 +24,16 @@ test('symlink tree', async (t) => {
         funding: 'http://example.com/a',
         dependencies: {
           b: 'file:../b',
-          c: 'file:../c'
-        }
-      })
+          c: 'file:../c',
+        },
+      }),
     },
     b: {
       'package.json': JSON.stringify({
         name: 'b',
         version: '1.0.0',
-        funding: 'http://example.com/b'
-      })
+        funding: 'http://example.com/b',
+      }),
     },
     c: {
       'package.json': JSON.stringify({
@@ -41,23 +41,23 @@ test('symlink tree', async (t) => {
         version: '1.0.0',
         funding: 'http://example.com/c',
         dependencies: {
-          d: 'file:../d'
-        }
-      })
+          d: 'file:../d',
+        },
+      }),
     },
     d: {
       'package.json': JSON.stringify({
         name: 'd',
         version: '1.0.0',
-        funding: 'http://example.com/d'
-      })
+        funding: 'http://example.com/d',
+      }),
     },
     node_modules: {
       a: t.fixture('symlink', '../a'),
       b: t.fixture('symlink', '../b'),
       c: t.fixture('symlink', '../c'),
-      d: t.fixture('symlink', '../d')
-    }
+      d: t.fixture('symlink', '../d'),
+    },
   })
 
   t.same(
@@ -66,36 +66,36 @@ test('symlink tree', async (t) => {
       dependencies: {
         a: {
           funding: {
-            url: 'http://example.com/a'
+            url: 'http://example.com/a',
           },
           version: '1.0.0',
           dependencies: {
             b: {
               funding: {
-                url: 'http://example.com/b'
+                url: 'http://example.com/b',
               },
-              version: '1.0.0'
+              version: '1.0.0',
             },
             c: {
               funding: {
-                url: 'http://example.com/c'
+                url: 'http://example.com/c',
               },
               version: '1.0.0',
               dependencies: {
                 d: {
                   funding: {
-                    url: 'http://example.com/d'
+                    url: 'http://example.com/d',
                   },
-                  version: '1.0.0'
-                }
-              }
-            }
-          }
-        }
+                  version: '1.0.0',
+                },
+              },
+            },
+          },
+        },
       },
       length: 4,
       name: 'root',
-      version: '1.0.0'
+      version: '1.0.0',
     },
     'should read symlinked tree'
   )
@@ -108,8 +108,8 @@ test('loading tree from path', async (t) => {
         'package.json': JSON.stringify({
           name: 'a',
           version: '1.0.0',
-          funding: 'http://example.com/a'
-        })
+          funding: 'http://example.com/a',
+        }),
       },
       b: {
         'package.json': JSON.stringify({
@@ -117,19 +117,19 @@ test('loading tree from path', async (t) => {
           version: '1.0.0',
           funding: {
             url: 'http://example.com/b',
-            type: 'Lorem'
-          }
-        })
-      }
+            type: 'Lorem',
+          },
+        }),
+      },
     },
     'package.json': JSON.stringify({
       name: 'root',
       version: '1.0.0',
       dependencies: {
         a: '1.0.0',
-        b: '1.0.0'
-      }
-    })
+        b: '1.0.0',
+      },
+    }),
   })
 
   t.same(
@@ -141,18 +141,18 @@ test('loading tree from path', async (t) => {
         a: {
           version: '1.0.0',
           funding: {
-            url: 'http://example.com/a'
-          }
+            url: 'http://example.com/a',
+          },
         },
         b: {
           version: '1.0.0',
           funding: {
             url: 'http://example.com/b',
-            type: 'Lorem'
-          }
-        }
+            type: 'Lorem',
+          },
+        },
       },
-      length: 2
+      length: 2,
     },
     'should return a valid result tree'
   )
@@ -161,7 +161,7 @@ test('loading tree from path', async (t) => {
   t.same(
     await read({ countOnly: true, path }),
     {
-      length: 2
+      length: 2,
     },
     'should be able to use countOnly option with read()'
   )
@@ -182,7 +182,7 @@ test('empty tree', (t) => {
     {
       name: null,
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return empty list'
   )
@@ -198,16 +198,16 @@ test('single item missing funding', (t) => {
           to: {
             'single-item': {
               name: 'single-item',
-              version: '1.0.0'
-            }
-          }
-        }]
-      ])
+              version: '1.0.0',
+            },
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return empty list'
   )
@@ -219,13 +219,13 @@ test('missing node to connection', (t) => {
     readTree({
       name: 'project',
       edgesOut: new Map([
-        ['single-item', {}]
-      ])
+        ['single-item', {}],
+      ]),
     }),
     {
       name: 'project',
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return empty list'
   )
@@ -239,15 +239,15 @@ test('missing package info', (t) => {
       edgesOut: new Map([
         ['single-item', {
           to: {
-            name: 'single-item'
-          }
-        }]
-      ])
+            name: 'single-item',
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return empty list'
   )
@@ -265,18 +265,18 @@ test('missing nested package info', (t) => {
             package: {
               name: 'single-item',
               version: '1.0.0',
-              funding: 'http://example.com'
+              funding: 'http://example.com',
             },
             edgesOut: new Map([
               ['foo', {
                 to: {
-                  name: 'foo'
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                  name: 'foo',
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -284,11 +284,11 @@ test('missing nested package info', (t) => {
         'single-item': {
           version: '1.0.0',
           funding: {
-            url: 'http://example.com'
-          }
-        }
+            url: 'http://example.com',
+          },
+        },
       },
-      length: 1
+      length: 1,
     },
     'should return empty list'
   )
@@ -307,17 +307,17 @@ test('funding object missing url', (t) => {
               name: 'single-item',
               version: '1.0.0',
               funding: {
-                type: 'Foo'
-              }
-            }
-          }
-        }]
-      ])
+                type: 'Foo',
+              },
+            },
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return empty list'
   )
@@ -328,12 +328,12 @@ test('use path if name is missing', (t) => {
   t.same(
     readTree({
       name: undefined,
-      path: '/tmp/foo'
+      path: '/tmp/foo',
     }),
     {
       name: '/tmp/foo',
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should use path as top level name'
   )
@@ -353,12 +353,12 @@ test('single item tree', (t) => {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'http://example.com'
-              }
-            }
-          }
-        }]
-      ])
+                url: 'http://example.com',
+              },
+            },
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -367,11 +367,11 @@ test('single item tree', (t) => {
           version: '1.0.0',
           funding: {
             type: 'foo',
-            url: 'http://example.com'
-          }
-        }
+            url: 'http://example.com',
+          },
+        },
       },
-      length: 1
+      length: 1,
     },
     'should return list with a single item'
   )
@@ -392,17 +392,17 @@ test('multiple funding sources', (t) => {
               funding: [
                 {
                   type: 'foo',
-                  url: 'http://example.com/foo'
+                  url: 'http://example.com/foo',
                 },
                 {
                   type: 'bar',
-                  url: 'http://example.com/bar'
-                }
-              ]
-            }
-          }
-        }]
-      ])
+                  url: 'http://example.com/bar',
+                },
+              ],
+            },
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -412,16 +412,16 @@ test('multiple funding sources', (t) => {
           funding: [
             {
               type: 'foo',
-              url: 'http://example.com/foo'
+              url: 'http://example.com/foo',
             },
             {
               type: 'bar',
-              url: 'http://example.com/bar'
-            }
-          ]
-        }
+              url: 'http://example.com/bar',
+            },
+          ],
+        },
       },
-      length: 1
+      length: 1,
     },
     'should return list with a single item containing multiple funding sources'
   )
@@ -433,7 +433,7 @@ test('deep-nested missing funding-info obj', (t) => {
     readTree({
       name: 'project',
       package: {
-        funding: 'http://example.com'
+        funding: 'http://example.com',
       },
       edgesOut: new Map([
         ['no-funding-info-item', {
@@ -441,7 +441,7 @@ test('deep-nested missing funding-info obj', (t) => {
             name: 'no-funding-info-item',
             package: {
               name: 'no-funding-info-item',
-              version: '1.0.0'
+              version: '1.0.0',
             },
             edgesOut: new Map([
               ['single-item', {
@@ -449,22 +449,22 @@ test('deep-nested missing funding-info obj', (t) => {
                   name: 'single-item',
                   package: {
                     name: 'single-item',
-                    version: '1.0.0'
-                  }
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                    version: '1.0.0',
+                  },
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
       funding: {
-        url: 'http://example.com'
+        url: 'http://example.com',
       },
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return list excluding packages missing funding info'
   )
@@ -476,16 +476,16 @@ test('top-level funding info', (t) => {
     readTree({
       name: 'project',
       package: {
-        funding: 'http://example.com'
-      }
+        funding: 'http://example.com',
+      },
     }),
     {
       name: 'project',
       funding: {
-        url: 'http://example.com'
+        url: 'http://example.com',
       },
       dependencies: {},
-      length: 0
+      length: 0,
     },
     'should return top-level item with normalized funding info'
   )
@@ -503,11 +503,11 @@ test('use string shorthand', (t) => {
             package: {
               name: 'single-item',
               version: '1.0.0',
-              funding: 'http://example.com'
-            }
-          }
-        }]
-      ])
+              funding: 'http://example.com',
+            },
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -515,11 +515,11 @@ test('use string shorthand', (t) => {
         'single-item': {
           version: '1.0.0',
           funding: {
-            url: 'http://example.com'
-          }
-        }
+            url: 'http://example.com',
+          },
+        },
       },
-      length: 1
+      length: 1,
     },
     'should return item with normalized funding info'
   )
@@ -531,7 +531,7 @@ test('duplicate items along the tree', (t) => {
     readTree({
       name: 'project',
       package: {
-        version: '2.3.4'
+        version: '2.3.4',
       },
       edgesOut: new Map([
         ['single-item', {
@@ -542,8 +542,8 @@ test('duplicate items along the tree', (t) => {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
+                url: 'https://example.com',
+              },
             },
             edgesOut: new Map([
               ['shared-top-first', {
@@ -554,10 +554,10 @@ test('duplicate items along the tree', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  }
-                }
+                      url: 'https://example.com',
+                    },
+                  },
+                },
               }],
               ['sub-dep', {
                 to: {
@@ -567,8 +567,8 @@ test('duplicate items along the tree', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
+                      url: 'https://example.com',
+                    },
                   },
                   edgesOut: new Map([
                     ['shared-nested-first', {
@@ -579,8 +579,8 @@ test('duplicate items along the tree', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'https://example.com'
-                          }
+                            url: 'https://example.com',
+                          },
                         },
                         edgesOut: new Map([
                           ['shared-top-first', {
@@ -591,16 +591,16 @@ test('duplicate items along the tree', (t) => {
                                 version: '1.0.0',
                                 funding: {
                                   type: 'foo',
-                                  url: 'https://example.com'
-                                }
-                              }
-                            }
-                          }]
-                        ])
-                      }
-                    }]
-                  ])
-                }
+                                  url: 'https://example.com',
+                                },
+                              },
+                            },
+                          }],
+                        ]),
+                      },
+                    }],
+                  ]),
+                },
               }],
               ['shared-nested-first', {
                 to: {
@@ -610,15 +610,15 @@ test('duplicate items along the tree', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  }
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                      url: 'https://example.com',
+                    },
+                  },
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -628,34 +628,34 @@ test('duplicate items along the tree', (t) => {
           version: '1.0.0',
           funding: {
             type: 'foo',
-            url: 'https://example.com'
+            url: 'https://example.com',
           },
           dependencies: {
             'shared-top-first': {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
+                url: 'https://example.com',
+              },
             },
             'sub-dep': {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
+                url: 'https://example.com',
+              },
             },
             'shared-nested-first': {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
-            }
-          }
-        }
+                url: 'https://example.com',
+              },
+            },
+          },
+        },
       },
-      length: 4
+      length: 4,
     },
     'should return list with a single item'
   )
@@ -675,8 +675,8 @@ test('multi-level nested items tree', (t) => {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
+                url: 'https://example.com',
+              },
             },
             edgesOut: new Map([
               ['sub-dep', {
@@ -687,8 +687,8 @@ test('multi-level nested items tree', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
+                      url: 'https://example.com',
+                    },
                   },
                   edgesOut: new Map([
                     ['sub-sub-dep', {
@@ -699,19 +699,19 @@ test('multi-level nested items tree', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'https://example.com'
-                          }
+                            url: 'https://example.com',
+                          },
                         },
-                        edgesOut: new Map()
-                      }
-                    }]
-                  ])
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                        edgesOut: new Map(),
+                      },
+                    }],
+                  ]),
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -720,29 +720,29 @@ test('multi-level nested items tree', (t) => {
           version: '1.0.0',
           funding: {
             type: 'foo',
-            url: 'https://example.com'
+            url: 'https://example.com',
           },
           dependencies: {
             'sub-dep': {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
+                url: 'https://example.com',
               },
               dependencies: {
                 'sub-sub-dep': {
                   version: '1.0.0',
                   funding: {
                     type: 'foo',
-                    url: 'https://example.com'
-                  }
-                }
-              }
-            }
-          }
-        }
+                    url: 'https://example.com',
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      length: 3
+      length: 3,
     },
     'should return list with all items'
   )
@@ -761,8 +761,8 @@ test('missing fund nested items tree', (t) => {
               name: 'first-level-dep',
               version: '1.0.0',
               funding: {
-                type: 'foo'
-              }
+                type: 'foo',
+              },
             },
             edgesOut: new Map([
               ['sub-dep', {
@@ -770,7 +770,7 @@ test('missing fund nested items tree', (t) => {
                   name: 'sub-dep',
                   package: {
                     name: 'sub-dep',
-                    version: '1.0.0'
+                    version: '1.0.0',
                   },
                   edgesOut: new Map([
                     ['sub-sub-dep-01', {
@@ -781,8 +781,8 @@ test('missing fund nested items tree', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'https://example.com'
-                          }
+                            url: 'https://example.com',
+                          },
                         },
                         edgesOut: new Map([
                           ['non-funding-child', {
@@ -790,7 +790,7 @@ test('missing fund nested items tree', (t) => {
                               name: 'non-funding-child',
                               package: {
                                 name: 'non-funding-child',
-                                version: '1.0.0'
+                                version: '1.0.0',
                               },
                               edgesOut: new Map([
                                 ['sub-sub-sub-dep', {
@@ -801,16 +801,16 @@ test('missing fund nested items tree', (t) => {
                                       version: '1.0.0',
                                       funding: {
                                         type: 'foo',
-                                        url: 'https://example.com'
-                                      }
-                                    }
-                                  }
-                                }]
-                              ])
-                            }
-                          }]
-                        ])
-                      }
+                                        url: 'https://example.com',
+                                      },
+                                    },
+                                  },
+                                }],
+                              ]),
+                            },
+                          }],
+                        ]),
+                      },
                     }],
                     ['sub-sub-dep-02', {
                       to: {
@@ -820,11 +820,11 @@ test('missing fund nested items tree', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'https://example.com'
-                          }
+                            url: 'https://example.com',
+                          },
                         },
-                        edgesOut: new Map()
-                      }
+                        edgesOut: new Map(),
+                      },
                     }],
                     ['sub-sub-dep-03', {
                       to: {
@@ -834,8 +834,8 @@ test('missing fund nested items tree', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'git://example.git'
-                          }
+                            url: 'git://example.git',
+                          },
                         },
                         edgesOut: new Map([
                           ['sub-sub-sub-dep-03', {
@@ -843,7 +843,7 @@ test('missing fund nested items tree', (t) => {
                               name: 'sub-sub-sub-dep-03',
                               package: {
                                 name: 'sub-sub-sub-dep-03',
-                                version: '1.0.0'
+                                version: '1.0.0',
                               },
                               edgesOut: new Map([
                                 ['sub-sub-sub-sub-dep', {
@@ -854,24 +854,24 @@ test('missing fund nested items tree', (t) => {
                                       version: '1.0.0',
                                       funding: {
                                         type: 'foo',
-                                        url: 'http://example.com'
-                                      }
-                                    }
-                                  }
-                                }]
-                              ])
-                            }
-                          }]
-                        ])
-                      }
-                    }]
-                  ])
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                                        url: 'http://example.com',
+                                      },
+                                    },
+                                  },
+                                }],
+                              ]),
+                            },
+                          }],
+                        ]),
+                      },
+                    }],
+                  ]),
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }),
     {
       name: 'project',
@@ -880,34 +880,34 @@ test('missing fund nested items tree', (t) => {
           version: '1.0.0',
           funding: {
             type: 'foo',
-            url: 'https://example.com'
+            url: 'https://example.com',
           },
           dependencies: {
             'sub-sub-sub-dep': {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
-            }
-          }
+                url: 'https://example.com',
+              },
+            },
+          },
         },
         'sub-sub-dep-02': {
           version: '1.0.0',
           funding: {
             type: 'foo',
-            url: 'https://example.com'
-          }
+            url: 'https://example.com',
+          },
         },
         'sub-sub-sub-sub-dep': {
           version: '1.0.0',
           funding: {
             type: 'foo',
-            url: 'http://example.com'
-          }
-        }
+            url: 'http://example.com',
+          },
+        },
       },
-      length: 4
+      length: 4,
     },
     'should return list excluding missing funding items'
   )
@@ -926,8 +926,8 @@ test('countOnly option', (t) => {
               name: 'first-level-dep',
               version: '1.0.0',
               funding: {
-                type: 'foo'
-              }
+                type: 'foo',
+              },
             },
             edgesOut: new Map([
               ['sub-dep', {
@@ -938,8 +938,8 @@ test('countOnly option', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
+                      url: 'https://example.com',
+                    },
                   },
                   edgesOut: new Map([
                     ['sub-sub-dep', {
@@ -950,14 +950,14 @@ test('countOnly option', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'https://example.com'
-                          }
+                            url: 'https://example.com',
+                          },
                         },
-                        edgesOut: new Map()
-                      }
-                    }]
-                  ])
-                }
+                        edgesOut: new Map(),
+                      },
+                    }],
+                  ]),
+                },
               }],
               ['sub-sub-dep', {
                 to: {
@@ -967,20 +967,20 @@ test('countOnly option', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  }
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                      url: 'https://example.com',
+                    },
+                  },
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }, {
-      countOnly: true
+      countOnly: true,
     }),
     {
-      length: 2
+      length: 2,
     },
     'should return only the length property'
   )
@@ -1000,8 +1000,8 @@ test('handle different versions', (t) => {
               version: '1.0.0',
               funding: {
                 type: 'foo',
-                url: 'https://example.com'
-              }
+                url: 'https://example.com',
+              },
             },
             edgesOut: new Map([
               ['bar', {
@@ -1012,19 +1012,19 @@ test('handle different versions', (t) => {
                     version: '1.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
-                  }
-                }
-              }]
-            ])
-          }
+                      url: 'https://example.com',
+                    },
+                  },
+                },
+              }],
+            ]),
+          },
         }],
         ['lorem', {
           to: {
             name: 'lorem',
             package: {
-              name: 'lorem'
+              name: 'lorem',
             },
             edgesOut: new Map([
               ['foo', {
@@ -1035,8 +1035,8 @@ test('handle different versions', (t) => {
                     version: '2.0.0',
                     funding: {
                       type: 'foo',
-                      url: 'https://example.com'
-                    }
+                      url: 'https://example.com',
+                    },
                   },
                   edgesOut: new Map([
                     ['foo-bar', {
@@ -1047,23 +1047,23 @@ test('handle different versions', (t) => {
                           version: '1.0.0',
                           funding: {
                             type: 'foo',
-                            url: 'https://example.com'
-                          }
-                        }
-                      }
-                    }]
-                  ])
-                }
-              }]
-            ])
-          }
-        }]
-      ])
+                            url: 'https://example.com',
+                          },
+                        },
+                      },
+                    }],
+                  ]),
+                },
+              }],
+            ]),
+          },
+        }],
+      ]),
     }, {
-      countOnly: true
+      countOnly: true,
     }),
     {
-      length: 4
+      length: 4,
     },
     'should treat different versions as diff packages'
   )
@@ -1075,14 +1075,14 @@ test('should not count root', (t) => {
     readTree({
       name: 'project',
       package: {
-        funding: 'http://example.com'
+        funding: 'http://example.com',
       },
-      edgesOut: new Map()
+      edgesOut: new Map(),
     }, {
-      countOnly: true
+      countOnly: true,
     }),
     {
-      length: 0
+      length: 0,
     },
     'should return length value excluding root funding info'
   )
@@ -1093,11 +1093,11 @@ test('retrieve funding info from valid objects', (t) => {
   t.same(
     normalizeFunding({
       url: 'http://example.com',
-      type: 'Foo'
+      type: 'Foo',
     }),
     {
       url: 'http://example.com',
-      type: 'Foo'
+      type: 'Foo',
     },
     'should return standard object fields'
   )
@@ -1105,21 +1105,21 @@ test('retrieve funding info from valid objects', (t) => {
     normalizeFunding({
       extra: 'Foo',
       url: 'http://example.com',
-      type: 'Foo'
+      type: 'Foo',
     }),
     {
       extra: 'Foo',
       url: 'http://example.com',
-      type: 'Foo'
+      type: 'Foo',
     },
     'should leave untouched extra fields'
   )
   t.same(
     normalizeFunding({
-      url: 'http://example.com'
+      url: 'http://example.com',
     }),
     {
-      url: 'http://example.com'
+      url: 'http://example.com',
     },
     'should accept url-only objects'
   )
@@ -1149,7 +1149,7 @@ test('retrieve funding info string shorthand', (t) => {
   t.same(
     normalizeFunding('http://example.com'),
     {
-      url: 'http://example.com'
+      url: 'http://example.com',
     },
     'should accept string shorthand'
   )
@@ -1161,38 +1161,38 @@ test('retrieve funding info from an array', (t) => {
     normalizeFunding([
       'http://example.com',
       {
-        url: 'http://two.example.com'
+        url: 'http://two.example.com',
       },
       'http://three.example.com',
       {
         url: 'http://three.example.com',
-        type: 'dos'
+        type: 'dos',
       },
       {
         url: 'http://three.example.com',
         type: 'third copy!',
-        extra: 'extra metadata!'
-      }
+        extra: 'extra metadata!',
+      },
     ]),
     [
       {
-        url: 'http://example.com'
+        url: 'http://example.com',
       },
       {
-        url: 'http://two.example.com'
-      },
-      {
-        url: 'http://three.example.com'
+        url: 'http://two.example.com',
       },
       {
         url: 'http://three.example.com',
-        type: 'dos'
+      },
+      {
+        url: 'http://three.example.com',
+        type: 'dos',
       },
       {
         url: 'http://three.example.com',
         type: 'third copy!',
-        extra: 'extra metadata!'
-      }
+        extra: 'extra metadata!',
+      },
     ],
     'should accept and normalize multiple funding sources'
   )
@@ -1216,7 +1216,7 @@ test('valid funding objects', (t) => {
     isValidFunding([
       'https://example.com',
       { url: 'https://example.com/2' },
-      { type: 'foo', url: 'https://example.com/1' }
+      { type: 'foo', url: 'https://example.com/1' },
     ]),
     'should return true if array contain ALL valid items'
   )
@@ -1255,7 +1255,7 @@ test('invalid funding objects', (t) => {
   t.notOk(
     isValidFunding([
       { url: 'https://example.com/2' },
-      0
+      0,
     ]),
     'should return false if ANY of array items is invalid'
   )
