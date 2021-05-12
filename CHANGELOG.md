@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.0.0-pre.0
+## 1.0.2
 
-- Initial pre-release.
+- Bumped @npmcli/arborist dependency version
+
+## 1.0.0
+
+- Initial release
 
