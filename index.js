@@ -44,6 +44,13 @@ function readTree (tree, opts) {
   const { countOnly } = opts || {}
   const _trailingDependencies = Symbol('trailingDependencies')
 
+  let filterSet
+
+  if (opts && opts.workspaces && opts.workspaces.length) {
+    const arb = new Arborist(opts)
+    filterSet = arb.workspaceDependencySet(tree, opts.workspaces)
+  }
+
   function tracked (name, version) {
     const key = String(name) + String(version)
     if (seen.has(key))
@@ -91,6 +98,9 @@ function readTree (tree, opts) {
 
       const node = edge.to.target || edge.to
       if (!node.package)
+        return empty()
+
+      if (filterSet && filterSet.size > 0 && !filterSet.has(node))
         return empty()
 
       const { name, funding, version } = node.package
@@ -174,8 +184,7 @@ function readTree (tree, opts) {
 
 async function read (opts) {
   const arb = new Arborist(opts)
-  const tree = await arb.loadActual()
-
+  const tree = await arb.loadActual(opts)
   return readTree(tree, opts)
 }
 

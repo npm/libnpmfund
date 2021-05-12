@@ -1261,3 +1261,98 @@ t.test('invalid funding objects', (t) => {
   )
   t.end()
 })
+
+t.test('workspaces', t => {
+  t.test('filter by workspace', async t => {
+    const path = t.testdir({
+      'package.json': JSON.stringify({
+        name: 'root',
+        version: '1.0.0',
+        workspaces: [
+          'packages/*',
+        ],
+        dependencies: {
+          '@npmcli/baz': '^1.0.0',
+        },
+      }),
+      packages: {
+        a: {
+          'package.json': JSON.stringify({
+            name: 'a',
+            version: '1.0.0',
+            funding: 'http://example.com/a',
+            dependencies: {
+              '@npmcli/foo': '^1.0.0',
+            },
+          }),
+        },
+        b: {
+          'package.json': JSON.stringify({
+            name: 'b',
+            version: '1.0.0',
+            devDependencies: {
+              '@npmcli/bar': '^1.0.0',
+            },
+          }),
+        },
+      },
+      node_modules: {
+        a: t.fixture('symlink', '../packages/a'),
+        b: t.fixture('symlink', '../packages/b'),
+        '@npmcli': {
+          foo: {
+            'package.json': JSON.stringify({
+              name: '@npmcli/foo',
+              version: '1.0.0',
+              funding: 'http://example.com/foo',
+            }),
+          },
+          bar: {
+            'package.json': JSON.stringify({
+              name: '@npmcli/bar',
+              version: '1.0.0',
+              funding: 'http://example.com/bar',
+            }),
+          },
+          baz: {
+            'package.json': JSON.stringify({
+              name: '@npmcli/baz',
+              version: '1.0.0',
+              funding: 'http://example.com/baz',
+            }),
+          },
+        },
+      },
+    })
+
+    const expected = {
+      dependencies: {
+        a: {
+          funding: {
+            url: 'http://example.com/a',
+          },
+          version: '1.0.0',
+          dependencies: {
+            '@npmcli/foo': {
+              funding: {
+                url: 'http://example.com/foo',
+              },
+              version: '1.0.0',
+            },
+          },
+        },
+      },
+      length: 2,
+      name: 'root',
+      version: '1.0.0',
+    }
+
+    t.same(
+      await read({ path, workspaces: ['a'] }),
+      expected,
+      'should filter by workspace name'
+    )
+  })
+
+  t.end()
+})
