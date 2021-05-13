@@ -52,6 +52,6 @@
     "tap": "^15.0.9"
   },
   "dependencies": {
-    "@npmcli/arborist": "^2.4.4"
+    "@npmcli/arborist": "^2.5.0"
   }
 }
