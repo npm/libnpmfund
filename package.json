@@ -52,6 +52,9 @@
     "tap": "^15.0.9"
   },
   "dependencies": {
-    "@npmcli/arborist": "^2.5.0"
+    "@npmcli/arborist": "^3.0.0"
+  },
+  "engines": {
+    "node": "^12.13.0 || ^14.15.0 || >=16"
   }
 }
