@@ -1,3 +1,11 @@
+# We've Moved! 🚚
+The code for this repo is now a workspace in the npm CLI repo.
+[github.com/npm/cli](https://github.com/npm/cli)
+
+You can find the workspace in /workspaces/libnpmhook  
+Please file bugs and feature requests as issues on the CLI and tag the issue with "libnpmhook".
+
+[github.com/npm/cli/issues](https://github.com/npm/cli)
 # libnpmfund
 
 [![npm version](https://img.shields.io/npm/v/libnpmfund.svg)](https://npm.im/libnpmfund)
